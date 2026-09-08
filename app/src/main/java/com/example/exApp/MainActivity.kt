@@ -18,6 +18,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.navigation.compose.*
+import com.example.exApp.ui.screen.BasicInfoScreen
+import com.example.exApp.ui.screen.HubungiKamiScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -25,8 +28,21 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             MyApplicationTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    LayoutTentangJualan()
+                Surface (
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ){
+                    val navController = rememberNavController()
+                    NavHost(navController = navController, startDestination = "basic_info") {
+                        composable("basic_info") {
+                            BasicInfoScreen(
+                                onNavigateToContact = { navController.navigate("form_screen")}
+                            )
+                        }
+                        composable("form_screen") {
+                            HubungiKamiScreen(navController = navController)
+                        }
+                    }
                 }
             }
         }

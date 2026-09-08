@@ -1,0 +1,6 @@
+[versions]
+androidx-navigation = "2.8.8"
+
+[libraries]
+androidx-navigation-runtime-ktx = { group = "androidx.navigation", name = "navigation-runtime-ktx", version.ref = "androidx-navigation" }
+androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "androidx-navigation" }
