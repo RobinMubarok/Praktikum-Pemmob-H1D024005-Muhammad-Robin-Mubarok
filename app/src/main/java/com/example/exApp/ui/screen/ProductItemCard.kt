@@ -36,6 +36,7 @@ fun ProductItemCard(product: Product, onClick: () -> Unit) {
             Box(
                 modifier = Modifier.fillMaxWidth()
             ){
+
                 Image(
                     painter = painterResource(id = imageRes),
                     contentDescription = product.name,
@@ -47,23 +48,24 @@ fun ProductItemCard(product: Product, onClick: () -> Unit) {
                     contentScale = ContentScale.Fit
                 )
 
+                if(product.category != null) {
+                    Box(
+                        modifier = Modifier
+                            .padding(4.dp)
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(MaterialTheme.colorScheme.secondary)
+                    ) {
+                        Text(
+                            text = product.category.name,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSecondary,
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                        )
+                    }
+                }
+
 
             }
-
-            if(product.category != null){
-                Box(
-                    modifier = Modifier
-                        .padding(4.dp)
-                        .clip(RoundedCornerShape(4.dp))
-                        .background(MaterialTheme.colorScheme.secondary)
-                ){
-                    Text(
-                        text = product.category.name,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSecondary,
-                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                    )
-                }
 
                 Spacer(modifier = Modifier.height(8.dp))
 
@@ -82,7 +84,7 @@ fun ProductItemCard(product: Product, onClick: () -> Unit) {
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.primary
                 )
-            }
+
         }
     }
 }

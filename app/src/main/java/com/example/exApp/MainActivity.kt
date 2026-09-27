@@ -1,5 +1,6 @@
 package com.example.exApp
 
+import android.R.attr.type
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -18,8 +19,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.navigation.NavType
 import androidx.navigation.compose.*
+import androidx.navigation.navArgument
 import com.example.exApp.ui.screen.BasicInfoScreen
+import com.example.exApp.ui.screen.DetailProductScreen
 import com.example.exApp.ui.screen.HubungiKamiScreen
 
 class MainActivity : ComponentActivity() {
@@ -33,14 +37,22 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ){
                     val navController = rememberNavController()
-                    NavHost(navController = navController, startDestination = "basic_info") {
-                        composable("basic_info") {
+                    NavHost(navController = navController, startDestination = "daftar_produk") {
+                        composable("daftar_produk") {
                             BasicInfoScreen(
-                                onNavigateToContact = { navController.navigate("form_screen")}
+                                onNavigateToContact = { navController.navigate("form_screen")},
+                                navController = navController
                             )
                         }
-                        composable("form_screen") {
-                            HubungiKamiScreen(navController = navController)
+                        composable(
+                            "detail/{productId}",
+                            arguments = listOf(navArgument("productId") { type = NavType.IntType })
+                        ) { backStackEntry ->
+                            val productId = backStackEntry.arguments?.getInt("productId") ?: 0
+                            DetailProductScreen(
+                                productId = productId,
+                                navController = navController
+                            )
                         }
                     }
                 }

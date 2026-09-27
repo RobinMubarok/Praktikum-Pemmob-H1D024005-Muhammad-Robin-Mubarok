@@ -1,5 +1,6 @@
 package com.example.exApp.ui.screen
 
+import android.widget.Button
 import android.widget.Toast
 import androidx.compose.material3.*
 import androidx.compose.foundation.*
@@ -19,6 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.font.FontWeight.*
 import kotlinx.coroutines.delay
 import androidx.navigation.NavController
 import com.example.exApp.R
@@ -31,52 +33,25 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 
 @Composable
-fun BasicInfoScreen(onNavigateToContact: () -> Unit, navController: androidx.navigation.NavController? = null) {
-    var selectedCategoryId by remember { mutableStateOf(DummyData.categories.firstOrNull()?.id) }
-
-    var filteredProducts = if (selectedCategoryId != null) {
-        DummyData.products.filter { it.category_id == selectedCategoryId }
-    } else {
-        DummyData.products
-    }
-
+fun DetailProductScreen(productId: Int, navController: NavController?) {
     val context = LocalContext.current
-    val products = DummyData.products
+    var product by remember{ mutableStateOf<Product?>(null) }
+    var isLoading by remember{ mutableStateOf(true) }
+    var quantity by remember{ mutableStateOf(1) }
 
-    var searchQuery by remember{ mutableStateOf("") }
-    var isLoading by remember{ mutableStateOf(false) }
-
-    LaunchedEffect(selectedCategoryId, searchQuery){
+    LaunchedEffect(productId){
         isLoading = true
-
         delay(1000)
-
-        val filteredByCategory = if (selectedCategoryId != null){
-            DummyData.products.filter {it.category_id == selectedCategoryId}
-        } else DummyData.products
-
-        filteredProducts = if (searchQuery.isBlank()) {
-            filteredByCategory
-        } else {
-            filteredByCategory.filter { it.name.contains(searchQuery, ignoreCase = true) }
-        }
-
+        product = DummyData.products.find { it.id==productId}
         isLoading = false
     }
-    StatelessDaftarProduct(
-        categories=DummyData.categories,
-        selectedCategoryId=selectedCategoryId,
-        onCategorySelected={selectedCategoryId = it},
-        searchQuery=searchQuery,
-        onSearchQueryChange={searchQuery = it},
+    StatelessDetailProduct(
+        product = product,
         isLoading=isLoading,
-        products=filteredProducts,
-        onProductClick={product ->
-            navController?.navigate("detail/${product.id}")
-        },
-        onContactUsClick = {
-            navController?.navigate("hubungi_kami")
-        }
+        quantity=quantity,
+        onQuantityChange={quantity=it},
+        onBackClick={navController?.popBackStack()},
+        onAddToCartClick = { Toast.makeText(context, "Dimasukkan: $quantity", Toast.LENGTH_SHORT).show() }
     )
     /* Scaffold (
         topBar = {
@@ -210,96 +185,68 @@ fun BasicInfoScreen(onNavigateToContact: () -> Unit, navController: androidx.nav
 @OptIn(ExperimentalMaterial3Api::class)
 
 @Composable
-fun StatelessDaftarProduct(
-    categories: List<Category>,
-    selectedCategoryId: Int?,
-    onCategorySelected: (Int) -> Unit,
-    searchQuery: String,
-    onSearchQueryChange: (String) -> Unit,
-    isLoading: Boolean,
-    products: List<Product>,
-    onProductClick: (Product) -> Unit,
-    onContactUsClick: () -> Unit
+fun StatelessDetailProduct(
+    product: Product?, isLoading: Boolean, quantity:Int,
+    onQuantityChange: (Int)->Unit, onBackClick: () -> Unit, onAddToCartClick: ()->Unit
 ) {
     Scaffold (
         topBar = {
             TopAppBar(
-                title = { Text(text = "Tentang Jualan") },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
+                title = { Text(text = "Detail Produk") },
+                navigationIcon = {
+                    IconButton(onClick = onBackClick) {
+                        Icon(painterResource(id = R.drawable.ic_launcher), "Back")
+                    }
+                }
             )
         }
     ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-        ) {
-            OutlinedTextField(
-                value = searchQuery,
-                onValueChange = onSearchQueryChange,
-                label = {Text("Cari produk...")},
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-                singleLine = true
-            )
-            Text(
-                text = "Kategori Produk",
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(16.dp)
-            )
-
-            LazyRow(
-                contentPadding = PaddingValues(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(DummyData.categories) { category ->
-                    CategoryItem(
-                        category = category,
-                        isSelected = category.id == selectedCategoryId,
-                        onClick = { onCategorySelected(category.id) }
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = "Daftar Produk",
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-            )
-
-            if(isLoading){
+        if(isLoading){
                 Box (modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally)
-                    {
-                       CircularProgressIndicator()
-                       Spacer(modifier = Modifier.height(8.dp))
-                        Text("Mencari data...")
-                    }                }
-            } else {
-                if(products.isEmpty()){
-                    Box (modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Text("Produk tidak ditemukan")
-                        }
-                    } else {
-                    LazyVerticalGrid(
-                        columns = GridCells.Fixed(2),
-                        contentPadding = PaddingValues(16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp),
-                        modifier = Modifier.fillMaxSize()
-                    ){
-                        items(products) { product ->
-                            ProductItemCard(product = product){
-                                onProductClick(product)
+                        CircularProgressIndicator()
+                    }
+            } else if (product != null){
+                Column(modifier = Modifier.fillMaxSize().padding(paddingValues).verticalScroll(rememberScrollState())) {
+                    val imageRes = if (product.img == "dummy_product") R.drawable.ic_launcher else R.drawable.ic_launcher
+                    Image(painterResource(id= imageRes), contentDescription = null, Modifier.fillMaxWidth().height(280.dp))
+                    Column(modifier = Modifier.padding(16.dp)){
+                        Text(product.name, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+                        Text("Rp ${product.price}", style = MaterialTheme.typography.titleLarge)
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text("Deskripsi", fontWeight = FontWeight.Bold)
+                        Text(product.description ?: "")
+                        Text("Stok: ${product.stock}")
+                        Spacer(modifier = Modifier.height(24.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text("Jumlah Beli")
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                FilledTonalIconButton(
+                                    onClick = { if (quantity > 1) onQuantityChange(quantity + 1) },
+                                    enabled = quantity > 1
+                                ) {Text("")}
+
+                                Text(quantity.toString(), modifier = Modifier.padding(horizontal = 16.dp))
+
+                                FilledTonalIconButton(
+                                    onClick = { if (quantity < product.stock) onQuantityChange(quantity + 1) },
+                                    enabled = quantity < product.stock
+                                ) {Text("+")}
                             }
+                        }
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Button(
+                            onClick = onAddToCartClick,
+                            modifier = Modifier.fillMaxWidth().height(50.dp),
+                            enabled = product.stock > 0 && quantity > 0
+                        ){
+                            Text(text = "Tambah ke Keranjang")
                         }
                     }
                 }
             }
-        }
     }
 }
